@@ -13,24 +13,60 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  # 1. ANALISE DE NEGOCIO
+  business_analysis:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+      - name: Validar Documentação de Negócio
+        run: echo "Validando requisitos e critérios de aceite..."
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+  # 2. ESPECIFICACAO FUNCIONAL
+  functional_spec:
+    needs: business_analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar Protótipos e Mockups
+        run: echo "Garantindo que a especificação técnica está pronta para o dev."
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+  # 3. DESENVOLVIMENTO (Build e Lint)
+  development:
+    needs: functional_spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Environment
+        run: echo "Instalando dependências e compilando o código..."
+      - name: Run Lint
+        run: echo "Checando padrões de código."
+
+  # 4. TESTE (Unitários, Integração, QA)
+  testing:
+    needs: development
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Unit Tests
+        run: echo "Executando testes automatizados..."
+      - name: Security Scan
+        run: echo "Verificando vulnerabilidades (SAST)..."
+
+  # 5. DEPLOY
+  deploy:
+    needs: testing
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy to Production
+        run: echo "Fazendo o deploy para o ambiente de produção."
+
+  # 6. SUSTENTAÇÃO (Monitoramento e Health Check)
+  maintenance:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health Check
+        run: echo "Verificando se o sistema está online e estável..."
+      - name: Notify Team
+        run: echo "Enviando status para o time de SRE/Sustentação."
